@@ -2,10 +2,12 @@
 
 void setup() {
   Serial.begin(115200);
+  delay(1000);
+  Serial.println("ESP32 Touch Sensor Test");
 }
 
 void loop() {
-  int hallValue = hallRead();  // Đọc giá trị từ cảm biến Hall tích hợp
-  Serial.println(hallValue);
-  delay(500);  // Đọc mỗi 0.5 giây
+  int touchValue = touchRead(T4);  // GPIO13 = Touch pin T4
+  Serial.println(touchValue);
+  delay(500);
 }
