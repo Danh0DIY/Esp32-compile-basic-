@@ -1,6 +1,8 @@
 #include <WiFi.h>
 #include "esp_wifi.h"
 
+void sendBeacon(const char *ssid);
+
 String targetSSID = "";
 const int numClones = 15;   // số mạng ảo spam ra
 
