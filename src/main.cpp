@@ -79,7 +79,7 @@ void scanAPs() {
     apList[i].ssid = WiFi.SSID(i);
     apList[i].rssi = WiFi.RSSI(i);
     apList[i].channel = WiFi.channel(i);
-    WiFi.BSSID(i, apList[i].mac);
+    WiFi.BSSID(i);
   }
 
   Serial.println("📋 Available Networks:");
