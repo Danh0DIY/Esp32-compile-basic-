@@ -1,20 +1,28 @@
+#include <Arduino.h>
 #include "USB.h"
 #include "USBHIDMouse.h"
 
 USBHIDMouse Mouse;
-const int buttonPin = 0; // chân nút bấm (GPIO0)
+USBHID HID;
+
+#define BTN 0  // chân nút bấm
 
 void setup() {
-  pinMode(buttonPin, INPUT_PULLUP);
-  USB.begin();
+  pinMode(BTN, INPUT_PULLUP);
+
+  HID.begin();
   Mouse.begin();
-  delay(2000);
+  USB.begin();
 }
 
 void loop() {
-  if (digitalRead(buttonPin) == LOW) { // nhấn nút
-    Mouse.moveTo(616, 586);
-    Mouse.click(MOUSE_LEFT);
-    delay(500); // chống dội nút
+  if (digitalRead(BTN) == LOW) {
+    // Di chuyển chuột
+    Mouse.move(616, 586); 
+    delay(200);
+
+    // Click chuột trái
+    Mouse.click();
+    delay(500);
   }
 }
