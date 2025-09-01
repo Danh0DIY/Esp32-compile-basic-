@@ -1,28 +1,34 @@
-#include <Arduino.h>
-#include "USB.h"
-#include "USBHIDMouse.h"
+#include <BleGamepad.h>
 
-USBHIDMouse Mouse;
-USBHID HID;
+// 3 nút: GPIO0, GPIO20, GPIO21
+const int btnPins[] = {0, 20, 21};
+const int NUM_BTNS = sizeof(btnPins)/sizeof(btnPins[0]);
 
-#define BTN 0  // chân nút bấm
+bool lastBtnState[3] = {0};
+
+BleGamepad bleGamepad("ESP32 Gamepad", "DIY", 100);
 
 void setup() {
-  pinMode(BTN, INPUT_PULLUP);
+  for (int i = 0; i < NUM_BTNS; i++) {
+    pinMode(btnPins[i], INPUT_PULLUP);
+    lastBtnState[i] = digitalRead(btnPins[i]) == LOW;
+  }
 
-  HID.begin();
-  Mouse.begin();
-  USB.begin();
+  bleGamepad.begin();
 }
 
 void loop() {
-  if (digitalRead(BTN) == LOW) {
-    // Di chuyển chuột
-    Mouse.move(616, 586); 
-    delay(200);
-
-    // Click chuột trái
-    Mouse.click();
-    delay(500);
+  if (bleGamepad.isConnected()) {
+    for (int i = 0; i < NUM_BTNS; i++) {
+      bool pressed = (digitalRead(btnPins[i]) == LOW); // LOW = nhấn
+      if (pressed != lastBtnState[i]) {
+        lastBtnState[i] = pressed;
+        int btnIndex = i + 1; // nút số 1,2,3
+        if (pressed) bleGamepad.press(btnIndex);
+        else         bleGamepad.release(btnIndex);
+      }
+    }
   }
+
+  delay(5);
 }
